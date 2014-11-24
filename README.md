@@ -69,7 +69,7 @@ You should also provide, in your code, a thready safety argument to establish th
 
 ### Using the Command Line
 
-It should be possible to use your implementation to find the shortest path between two Marvel characters from the command line. You should implement a main( ) method in a file called MP5.java. This main( ) method should allow a user to supply as input the names of two characters (from the keyboard or standard input) and your program should produce the path between the two characters as output to standard output. Output a suitable message if no path is found. There is no rigid spec for input/output formats. 
+It should be possible to use your implementation to find the shortest path between two Marvel characters from the command line. You should implement a `main( )` method in a file called `MP5.java`. This `main( )` method should allow a user to supply as input the names of two characters (from the keyboard or standard input) and the number of threads to use for a concurrent BFS implementation, and your program should produce the path between the two characters as output to standard output. Output a suitable message if no path is found. There is no rigid spec for input/output formats. 
 
 The command line use of your implementation should be as follows:
 
