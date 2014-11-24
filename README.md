@@ -63,7 +63,9 @@ For readability, you should use more descriptive variable names in your actual c
 
 Many character pairs will have multiple paths. Your program should return the lexicographically (alphabetically) least path. More precisely, it should pick the lexicographically first character at each next step in the path, and if those characters appear in several comic books together, it should print the lexicographically lowest title of a comic book that they both appear in. The BFS algorithm above can be easily modified to support this ordering: in the for-each loop, visit edges in increasing order of m's character name, with edges to the same character visited in increasing order of comic book title.
 
-(You may want to think about whether you should hardcode this behaviour into your ADT or not. What are the advantages/disadvantages of hardcoding this lexicographic ordering? Although there is no penalty in this MP for hardcoding this choice, you should think about the implications of that choice.)
+You may want to think about whether you should hardcode this behaviour into your ADT or not. What are the advantages/disadvantages of hardcoding this lexicographic ordering? Although there is no penalty in this MP for hardcoding this choice, you should think about the implications of that choice.
+
+You should also provide, in your code, a thready safety argument to establish the correctness of your concurrent BFS implementation.
 
 ### Using the Command Line
 
