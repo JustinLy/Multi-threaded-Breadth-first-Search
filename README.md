@@ -54,7 +54,8 @@ For readability, you should use more descriptive variable names in your actual c
                 add m->p' to M
                 add m to Q
 ```            
-    If the loop terminates, then no path exists from `start` to `dest`. The implementation should indicate this to the client.
+   
+If the loop terminates, then no path exists from `start` to `dest`. The implementation should indicate this to the client.
  Here are some facts about the algorithm.
 
 + It is a loop invariant that every element of Q is a key in M.
