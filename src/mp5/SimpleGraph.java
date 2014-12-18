@@ -103,7 +103,7 @@ public class SimpleGraph {
 				newNeighboursSet = adjacencyList.get(vertex);
 				if( newNeighboursSet != null ) //Check if vertex exists on the graph
 				{
-					newNeighboursSet.add(newEdge.getPartner(vertex)); //Add vertex 2 to vertex1's set of neighbours
+					newNeighboursSet.add(newEdge.getPartner(vertex)); //Add vertex2 to vertex1's set of neighbours
 				}
 				else //vertex does not exist on graph. Add it to the graph 
 				{
@@ -174,7 +174,7 @@ public class SimpleGraph {
 		}
 	
 		final ExecutorService executor = Executors.newFixedThreadPool(threads); //pool of "threads" size
-		//TODO: While( nextQ.notempty) submit n tasks to threadpool
+		
 		do
 		{
 			//Execute the search task using the specified number of threads. 
