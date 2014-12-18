@@ -147,41 +147,34 @@ public class MarvelGraph {
 	 */
 	List<String> breadthFirstSearch( String startVertex, String endVertex, int threads )
 	{
-		//Maps each visited vertex to shortest path to get to it from startVertex
-		Map<String, List<String>> pathMap = new ConcurrentHashMap<String, List<String>>();
+		//Maps each visited vertex to shortest path to get to it from startVertex. These paths are optimized
+		Map<String, List<String>> completePaths = new ConcurrentHashMap<String, List<String>>();
 		//Temporary path map for the threads to work on. Final results are transferred to pathMap at end of each level of search.
-		Map<String, List<String>> tempMap = new ConcurrentHashMap<String, List<String>>();
+		Map<String, List<String>> tempPaths = new ConcurrentHashMap<String, List<String>>();
 		
-		//currentVertices for current "level" of vertices the threads are working on
-		//nextVertices for neighbours of the vertices in currentQueue 
-		Queue<String> currentVertices = new ConcurrentLinkedQueue<String>();
-		Queue<String> nextVertices = new ConcurrentLinkedQueue<String>();
-		
-		//TODO: Initialize currentQueue with the start vertex, add start to pathMap
-		currentVertices.add(startVertex);
+		//add startVertex to completePaths 
 		ArrayList<String> startPath = new ArrayList<String>();
 		startPath.add(startVertex);
-		pathMap.put(startVertex, startPath);
+		completePaths.put(startVertex, startPath);
 		
 		if( endVertex.equals(startVertex) ) //start and end are same just return startPath
 		{
 			System.out.println( "Path from " + startVertex + "to" + endVertex + "is" + startVertex);
 			return startPath; 
 		}
-		//TODO: Create the Search Task. Will be run by all threads with the parameters as shared data
-		Search searchTask = new Search(pathMap, tempMap, currentVertices, nextVertices );
+		
+		//Create the Search Task. Will be run by all threads sharing the same parameters
+		Search searchTask = new Search(completePaths, tempPaths, startVertex );
 		List<Callable<Void> > taskList = new ArrayList<Callable<Void> >();
-		//TODO: Make the thread pool of size "threads"
-		final ExecutorService executor = Executors.newFixedThreadPool(threads);
-		//TODO: While( nextQ.notempty) submit n tasks to threadpool
-		while( !currentVertices.isEmpty() )
+		for( int index = 0; index < threads; index++ ) //Add Search Task "threads" times to taskList
 		{
-			//Add the searchTask "threads" times to the taskList (where "threads" is the number of threads)
-			for( int index = 0; index < threads; index++ )
-			{
-				taskList.add(searchTask);
-			}
-			
+			taskList.add(searchTask);
+		}
+	
+		final ExecutorService executor = Executors.newFixedThreadPool(threads); //pool of "threads" size
+		//TODO: While( nextQ.notempty) submit n tasks to threadpool
+		do
+		{
 			//Execute the search task using the specified number of threads. 
 			try
 			{
@@ -191,45 +184,36 @@ public class MarvelGraph {
 			{
 				System.out.println( "Error when invoking search tasks\n");
 			}
-			List<String> finalPath = tempMap.get(endVertex);
+			
+			List<String> finalPath = tempPaths.get(endVertex);
 			if( finalPath != null ) //Optimal path to endVertex found
 			{
-				printPath( finalPath ); //TODO: implement this
+				//printPath( finalPath ); //TODO: implement this
 				return finalPath;
 			}
 			else
 			{
-				pathMap.putAll(tempMap); //Add finished paths to pathMap
-				tempMap.clear(); //Clear tempMap for next round of searching
-				
-				//Switch now-empty currentVertices with nextVertices to search next level of neighbours
-				Queue<String> tempQueue = currentVertices;
-				currentVertices = nextVertices; 
-				nextVertices = currentVertices; //an empty queue 
-				searchTask.setCurrent(currentVertices) //TODO: change this to setQueues for simplicity 
-				//TODO: OR. Make currentV and nextV fields of Search and just pass startVertex. switch inside
-				//Make tempMap latestMap or something more descriptive, recentMap, currentMap
+				completePaths.putAll(tempPaths); //Add finished paths to pathMap
+				tempPaths.clear(); //Clear tempMap for next round of searching
 			}
-			
-			
 		}
-		//TODO: invokeAll on the tasks
-		//TODO: check for endVertex in tempMap (faster cuz smaller)
-		//TODO: put all of tempMap in pathMap
-		//TODO: Switch current and next, setCurrent, setNext, CLEAR NEXT, CLEAR TEMP
+		while( searchTask.updateSearch() ); //Updates search task and continues if there is more work to be done.
+		
+		throw new NoPathException(startVertex, endVertex ); //No path between the vertices found
 	}
 	
 	private class Search implements Callable<Void> 
 	{
-		/*The purpose of this class is to find the optimal path of all neighbours 
-		/*NOTE: This inner class was created instead of using anonymous runnable tasks to avoid the
-		overhead of creating a new runnable object for each level of the breadth first search */
+		/**This is a helper class to find the optimal path to all neighbours of a "level" of vertices
+		 * (ie vertices in currentVertices are a "level" as they are all equidistant from the start vertex) 
+		 * and add these neighbours to the next level of vertices (nextVertices) in preparation of the next search
+		 */
 		
 		//Maps each visited vertex to shortest and alphabetically correct path to get to it from startVertex
-		private Map<String, List<String>> pathMap = new ConcurrentHashMap<String, List<String>>();
+		private Map<String, List<String>> completePaths;
 		
 		//temporary pathMap to hold tentative paths to vertices that may change due to alphabetical order
-		private Map<String, List<String>> tempMap = new ConcurrentHashMap<String, List<String>>();
+		private Map<String, List<String>> tempPaths;
 		
 		//currentVertices for current "level" of vertices the threads are working on
 		//nextVertices for neighbours of the vertices in currentQueue 
@@ -238,43 +222,38 @@ public class MarvelGraph {
 		
 		/**
 		 * Creates a search task with the given current queue, next queue, temporary path map and permanent pathMap.
-		 * @param pathMap - Map containing shortest and alphabetically lowest path for visited vertices
-		 * @param tempMap - Empty map for temporarily saving paths to vertices being visited during the search.
-		 * @param current - Current queue of vertices whose neighbours you are going to visit
-		 * @param next	  - Queue containing neighbours of the vertices you search in "current"
+		 * @param completePaths - Map containing shortest and alphabetically lowest path for visited vertices
+		 * @param tempPaths - Empty map for temporarily saving paths to vertices being visited during the search.
+		 * @param root - vertex to start the search at
 		 */
-		private Search( Map<String, List<String>> pathMap, Map<String, List<String>> tempMap, 
-						Queue<String> current, Queue<String> next )
+		private Search( Map<String, List<String>> completePaths, Map<String, List<String>> tempPaths, String root)
 		{
-			this.pathMap = pathMap;
-			this.tempMap = tempMap;
-			currentVertices = current;
-			nextVertices = next;
+			this.completePaths = completePaths;
+			this.tempPaths = tempPaths;
+			currentVertices.offer(root); //Add startVertex to the current queue to start the search.
 		}
 		
 		/**
-		 * Sets the currentVertices queue 
-		 * @param currentVertices
+		 * Updates the work queues for next round of searcing by switching currentQueue with nextQueue and
+		 * clearing nextQueue. Also returns true or false indicating if there are any vertices left to visit in search.
+		 * @modifies currentVertices - by assigning it to nextVertices. 
+		 * 			 nextVertices -    by making it empty
+		 * @return true if currentQueue is not empty, false otherwise
 		 */
-		private void setCurrent( Queue<String> currentVertices)
+		private boolean updateSearch( )
 		{
-			this.currentVertices = currentVertices;
+			Queue<String> tempQueue = currentVertices;
+			currentVertices = nextVertices; 
+			nextVertices = tempQueue; 
+			nextVertices.clear();	
+			return currentVertices.isEmpty();
 		}
 		
 		/**
-		 * Sets the nextVertices queue
-		 * @param nextVertices
-		 */
-		private void setNext( Queue<String> nextVertices )
-		{
-			this.nextVertices = nextVertices;
-		}
-		
-		/**
-		 * Populates tempMap with the shortest and alphabetically lowest path to the neighbours of
-		 * vertices in currentVertices, and also adds these neighbours to nextVertices. 
+		 * Populates tempMap with the shortest and alphabetically lowest paths to the neighbours of
+		 * the vertices in currentVertices, and also adds these neighbours to nextVertices. 
 		 * @return null - Return is irrelevant for the search
-		 * @modifies pathMap, tempMap, current, and next 
+		 * @modifies completePaths, tempPaths, currentVertices, and nextVertices 
 		 */
 		public Void call()
 		{
@@ -286,19 +265,19 @@ public class MarvelGraph {
 				//Process each neighbour of currentVertex 
 				for( String neighbour : adjacencyList.get(currentVertex))
 				{
-					if (pathMap.get(neighbour) == null ) //Haven't found optimal path for "neighbour" yet
+					if (completePaths.get(neighbour) == null ) //Haven't found optimal path for "neighbour" yet
 					{
 						synchronized( neighbour ) //Lock so accesses to "neighbour" and its path are atomic
 						{
-							List<String> currentPath = tempMap.get(neighbour);
+							List<String> currentPath = tempPaths.get(neighbour);
 							List<String> newPath;
 							
 							//"neighbour" has not been visited. Create path for it
 							if( currentPath == null ) 
 							{
-								newPath = new ArrayList<String>( pathMap.get(currentVertex) );
+								newPath = new ArrayList<String>( completePaths.get(currentVertex) );
 								newPath.add( neighbour ); 
-								tempMap.put(neighbour, newPath); //Update optimal path for "neighbour"
+								tempPaths.put(neighbour, newPath); //Update optimal path for "neighbour"
 								nextVertices.offer( neighbour ); //Add to nextVertices queue
 							}
 							else //"neighbour" has already been visited 
@@ -309,9 +288,9 @@ public class MarvelGraph {
 								//Update to this new path if new path is alphabetically lower
 								if( currentVertex.compareToIgnoreCase( lastVertexOnPath ) < 0 )
 								{
-									newPath = new ArrayList<String>( pathMap.get(currentVertex) );
+									newPath = new ArrayList<String>( completePaths.get(currentVertex) );
 									newPath.add( neighbour ); 
-									tempMap.put(neighbour, newPath); //Update optimal path for "neighbour"
+									tempPaths.put(neighbour, newPath); //Update optimal path for "neighbour"
 								}
 							}	
 						}
@@ -320,8 +299,6 @@ public class MarvelGraph {
 			}
 			return null;
 		}
-		
-		
 	}
 	
 	
