@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class Edge {
+public class Edge implements Comparable {
 
 	private final Set<String> vertexPair;
 	private final String edgeLabel;
@@ -49,5 +49,26 @@ public class Edge {
         else
         	throw new IllegalArgumentException();     
     }
+    
+    /**
+     * Compares the edge labels between this edge and "obj" using lexicographic order
+     * @param obj - Edge you are comparing this to
+     * @return - neg, zero, or pos if this edge's order is less than, equal or greater than "obj"
+     * @throws NullPointerException - if obj is null
+     * @throws ClassCastException - if obj is not of type Edge
+     */
+	@Override
+	public int compareTo(Object obj) {
+		if( obj == null  )
+			throw new NullPointerException();
+		else if( !(obj instanceof Edge ))
+			throw new ClassCastException();
+		else 
+		{
+			Edge edge2 = (Edge) obj;
+			return edgeLabel.compareTo(edge2.edgeLabel);
+		}
+			
+	}
 	
 }

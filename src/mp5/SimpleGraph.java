@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,9 +16,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MarvelGraph {
+public class SimpleGraph {
 
-	/*REP INVARIANT: 
+	/**REP INVARIANT: 
 	- Cannot contain duplicate vertices or duplicate edges. 
 	- A vertex cannot have an edge with itself
 	- Vertices and edges cannot be null
@@ -24,13 +26,13 @@ public class MarvelGraph {
 		neighbouring vertices in adjacencyList ( Map< String, Set{neighbours}  )>
 	*/
 	
-	/*Abstraction Function
+	/**Abstraction Function
 	 - Strings in adjacencyList ( Map< String, Set{neighbours} ) map to all vertices and
 	 	Set{neighbours} maps to the neighbouring vertices of a given vertex
-	 -  "Edge" objects which contain a set of Strings of the comics both vertices appeared in
+	 -  "Edge" objects which contain a set of Strings which are edge labels for edges between vertices,
 	 	are mapped to edges between vertices on the graph. These "edges" are found in 
 	 	key-value pairs in edgeMap 
-	 	Together these data structures make up the MarvelGraph ADT  
+	 	Together these data structures make up the SimpleGraph ADT  
 	 */
 	
 	//adjacency list mapping all vertices to their neighbours
@@ -39,10 +41,10 @@ public class MarvelGraph {
 	private final Map< Set<String>, Set<Edge> > edgeMap = new HashMap< Set<String>, Set<Edge> >();
 	
 	/**
-	 * Creates an empty MarvelGraph
-	 * @return a MarvelGraph with no vertices or edges
+	 * Creates an empty SimpleGraph
+	 * @return a SimpleGraph with no vertices or edges
 	 */
-	public MarvelGraph() 
+	public SimpleGraph() 
 	{
 		
 	}
@@ -188,7 +190,7 @@ public class MarvelGraph {
 			List<String> finalPath = tempPaths.get(endVertex);
 			if( finalPath != null ) //Optimal path to endVertex found
 			{
-				//printPath( finalPath ); //TODO: implement this
+				System.out.println( pathToString(finalPath));
 				return finalPath;
 			}
 			else
@@ -200,6 +202,33 @@ public class MarvelGraph {
 		while( searchTask.updateSearch() ); //Updates search task and continues if there is more work to be done.
 		
 		throw new NoPathException(startVertex, endVertex ); //No path between the vertices found
+	}
+	
+	/**
+	 * Returns string representation of alphabetically lowest path between 2 vertices, 
+	 * given a list of the vertices on the path. (Uses the alphabetically lowest edges)
+	 *@param verticesOnPath - vertices on the path
+	 *@return - a string representation of "verticesOnPath" with alphabetically lowest edges.
+	 */
+	private String pathToString( List<String> verticesOnPath )
+	{
+		StringBuffer path = new StringBuffer("" );
+		
+		for( int index = 1; index < verticesOnPath.size(); index++ )
+		{
+			//This block sorts the edges between 2 vertices and chooses the lowest
+			Set<String> currentSet = new HashSet<String>();
+			String start = verticesOnPath.get(index-1);
+			String end =  verticesOnPath.get(index); 
+			currentSet.add( start);
+			currentSet.add( end );
+			SortedSet<Edge> edges = new TreeSet<Edge>( edgeMap.get(currentSet) ); //sort edges
+			String lowestEdge = edges.first().getLabel(); //Get lowest edge between 2 vertices
+			
+			//String representation for the 2 vertices and the edge connecting them
+			path.append( start + "and " + end + "appear in " + lowestEdge + " \n" );
+		}
+		return path.toString();
 	}
 	
 	private class Search implements Callable<Void> 
@@ -286,7 +315,7 @@ public class MarvelGraph {
 								String lastVertexOnPath = currentPath.get( currentPath.size()-2 );
 								
 								//Update to this new path if new path is alphabetically lower
-								if( currentVertex.compareToIgnoreCase( lastVertexOnPath ) < 0 )
+								if( currentVertex.compareTo( lastVertexOnPath ) < 0 )
 								{
 									newPath = new ArrayList<String>( completePaths.get(currentVertex) );
 									newPath.add( neighbour ); 
