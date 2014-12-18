@@ -7,8 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MarvelGraph {
 
@@ -137,6 +141,9 @@ public class MarvelGraph {
 	 * 		there is no possibility of a thread finding endVertex first on a further level and
 	 * 		causing a longer path to be returned
 	 * 3. Since threads can only work on the same "level" of vertices and no paths
+	 * 4. Within Searcher's run() method:
+	 * 		- Checking if empty and polling is done together atomically in queues
+	 * 		- All accesses to a "neighbour" vertex and its current path is synchronized and made atomic
 	 */
 	List<String> breadthFirstSearch( String startVertex, String endVertex, int threads )
 	{
@@ -151,16 +158,70 @@ public class MarvelGraph {
 		Queue<String> nextVertices = new ConcurrentLinkedQueue<String>();
 		
 		//TODO: Initialize currentQueue with the start vertex, add start to pathMap
-		//TODO: Create the Search Task
-		//TODO: Make the thread pool n
+		currentVertices.add(startVertex);
+		ArrayList<String> startPath = new ArrayList<String>();
+		startPath.add(startVertex);
+		pathMap.put(startVertex, startPath);
+		
+		if( endVertex.equals(startVertex) ) //start and end are same just return startPath
+		{
+			System.out.println( "Path from " + startVertex + "to" + endVertex + "is" + startVertex);
+			return startPath; 
+		}
+		//TODO: Create the Search Task. Will be run by all threads with the parameters as shared data
+		Search searchTask = new Search(pathMap, tempMap, currentVertices, nextVertices );
+		List<Callable<Void> > taskList = new ArrayList<Callable<Void> >();
+		//TODO: Make the thread pool of size "threads"
+		final ExecutorService executor = Executors.newFixedThreadPool(threads);
 		//TODO: While( nextQ.notempty) submit n tasks to threadpool
+		while( !currentVertices.isEmpty() )
+		{
+			//Add the searchTask "threads" times to the taskList (where "threads" is the number of threads)
+			for( int index = 0; index < threads; index++ )
+			{
+				taskList.add(searchTask);
+			}
+			
+			//Execute the search task using the specified number of threads. 
+			try
+			{
+			executor.invokeAll(taskList); //This thread is blocked till all search threads are done
+			}
+			catch(Exception e)
+			{
+				System.out.println( "Error when invoking search tasks\n");
+			}
+			List<String> finalPath = tempMap.get(endVertex);
+			if( finalPath != null ) //Optimal path to endVertex found
+			{
+				printPath( finalPath ); //TODO: implement this
+				return finalPath;
+			}
+			else
+			{
+				pathMap.putAll(tempMap); //Add finished paths to pathMap
+				tempMap.clear(); //Clear tempMap for next round of searching
+				
+				//Switch now-empty currentVertices with nextVertices to search next level of neighbours
+				Queue<String> tempQueue = currentVertices;
+				currentVertices = nextVertices; 
+				nextVertices = currentVertices; //an empty queue 
+				searchTask.setCurrent(currentVertices) //TODO: change this to setQueues for simplicity 
+				//TODO: OR. Make currentV and nextV fields of Search and just pass startVertex. switch inside
+				//Make tempMap latestMap or something more descriptive, recentMap, currentMap
+			}
+			
+			
+		}
 		//TODO: invokeAll on the tasks
-		//TODO: check for endVertex in pathMap
-		//TODO: Switch current and next, CLEAR NEXT, CLEAR TEMP
+		//TODO: check for endVertex in tempMap (faster cuz smaller)
+		//TODO: put all of tempMap in pathMap
+		//TODO: Switch current and next, setCurrent, setNext, CLEAR NEXT, CLEAR TEMP
 	}
 	
-	private class Search implements Runnable 
+	private class Search implements Callable<Void> 
 	{
+		/*The purpose of this class is to find the optimal path of all neighbours 
 		/*NOTE: This inner class was created instead of using anonymous runnable tasks to avoid the
 		overhead of creating a new runnable object for each level of the breadth first search */
 		
@@ -212,12 +273,15 @@ public class MarvelGraph {
 		/**
 		 * Populates tempMap with the shortest and alphabetically lowest path to the neighbours of
 		 * vertices in currentVertices, and also adds these neighbours to nextVertices. 
+		 * @return null - Return is irrelevant for the search
 		 * @modifies pathMap, tempMap, current, and next 
 		 */
-		public void run()
+		public Void call()
 		{
 			String currentVertex;
-			while( ( currentVertex = currentVertices.poll() ) != null ) //Atomically dequeue and check if empty
+			
+			//Process vertices in currentVertices till it's empty. Empty-Checks and dequeues are atomic
+			while( ( currentVertex = currentVertices.poll() ) != null )
 			{
 				//Process each neighbour of currentVertex 
 				for( String neighbour : adjacencyList.get(currentVertex))
@@ -228,6 +292,7 @@ public class MarvelGraph {
 						{
 							List<String> currentPath = tempMap.get(neighbour);
 							List<String> newPath;
+							
 							//"neighbour" has not been visited. Create path for it
 							if( currentPath == null ) 
 							{
@@ -253,6 +318,7 @@ public class MarvelGraph {
 					}
 				}
 			}
+			return null;
 		}
 		
 		
