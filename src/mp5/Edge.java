@@ -9,16 +9,24 @@ public class Edge implements Comparable {
 
 	private final Set<String> vertexPair;
 	private final String edgeLabel;
-	
-	public Edge( Set<String> vertexPair, String edgeLabel )
+	/**
+	 * Creates an edge between the pair of vertices and labels it with edgeLabel
+	 * @param vertexPair - The pair of vertices you are creating an edge between
+	 * @param edgeLabel - The name of the edge between the vertices
+	 * @return an edge connecting the vertices in vertexPair
+	 * @throws IllegalArgumentException - If size of vertexPair != 2
+	 */
+	public Edge( Set<String> vertexPair, String edgeLabel ) 
 	{
+		if( vertexPair.size() != 2 )
+			throw new IllegalArgumentException();
 		this.vertexPair = vertexPair;
 		this.edgeLabel = edgeLabel;
 	}
 	
     /**
     Returns a set containing the 2 vertices of the edge
-    @return - a set containing the 2vertices of the edge
+    @return - a COPY of the set containing the 2vertices of the edge
     */
     public Set<Object> getVertices()
     {
@@ -68,7 +76,35 @@ public class Edge implements Comparable {
 			Edge edge2 = (Edge) obj;
 			return edgeLabel.compareTo(edge2.edgeLabel);
 		}
-			
+	}
+
+	/**Auto-generated hashCode() method **/
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((edgeLabel == null) ? 0 : edgeLabel.hashCode());
+		result = prime * result
+				+ ((vertexPair == null) ? 0 : vertexPair.hashCode());
+		return result;
+	}
+
+	/**
+	 * Checks if the specified Edge is equal to this by comparing edgeLabel and vertexPair
+	 *@param obj - the Edge you are comparing this to for equality.
+	 *@return true if obj's edgeLabel and vertexPair are equal to the ones in this, false if not, 
+	 *			 or obj not of type Edge
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if( hashCode() == obj.hashCode() && obj instanceof Edge )
+		{
+		Edge edge2 = (Edge) obj;
+		if( edgeLabel.equals(edge2.edgeLabel) && vertexPair.equals(edge2.vertexPair))
+			return true;
+		}
+			return false;
 	}
 	
 }

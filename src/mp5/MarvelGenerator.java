@@ -27,7 +27,14 @@ public final class MarvelGenerator {
 	 * @param data - file with the data you want to create a SimpleGraph from
 	 * @requires data is a tsv file with exactly 2 fields and same format as Marvel Dataset
 	 * @return a SimpleGraph of the data in "data"
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
+	 *  
+	 * Thread Safety Arguments:
+	 * 	1. The shared datatype, "tasks" is a thread-safe type accesses to it are atomic.
+	 * 	2. The producer thread and consumer thread do different things with "tasks" that don't
+	 * 		affect each other.
+	 * 	3. Message-passing: A poison pill is placed in "tasks" by the producer when file is read
+	 * 		so consumer knows when to stop so no deadlock occurs.
 	 */
 	public static SimpleGraph generateGraph( String data ) throws FileNotFoundException
 	{
@@ -49,15 +56,13 @@ public final class MarvelGenerator {
 				{	while( (next = producer.readLine() ) != null )
 					{
 						String[] nextData = next.split("\\t"); //Split char and comic
-						nextData[0].replaceAll("^\"|\"$", ""); //Get rid of enclosing quotations
-						nextData[1].replaceAll("^\"|\"$", "");
 						tasks.put( nextData ); //Place into task queue for consumer
 					}
 					tasks.put(POISON_PILL); //End of file, place poison pill to stop consumer 
 				}
 				catch(Exception e )
 				{
-					System.out.println( "Error building graph: File" );
+					System.out.println( "Error building graph: File reading" );
 				}
 				
 			}	
@@ -74,30 +79,40 @@ public final class MarvelGenerator {
 				return graph;
 			
 			do
-			{
-				if( nextEntry[1].equals(currentComic) ) //Char from same comic as previous
+			{	//if not the last entry and character from same comic as previous entry
+				if( nextEntry != POISON_PILL && nextEntry[1].equals(currentComic) )
 					characterGroup.add(nextEntry[0]); 
 				else 
 				{	
 					if( characterGroup.size() == 1 ) //Special case: only 1 character in comic
 						graph.addVertex( (String) characterGroup.iterator().next() );
-					
-					//Create edges between all characters in this characterGroup, add to graph
-					Iterator<String> outter = characterGroup.iterator();
-					while( outter.hasNext() ) 
+					else
 					{
-						String currentChar = outter.next();
-						outter.remove(); //Remove currentChar from characterGroup
-						
-						Iterator<String> inner = characterGroup.iterator(); //one less than outter now
-						while( inner.hasNext() ) //Creates edges between currentChar and others in group
-							graph.addEdge(currentChar, (String) inner.next(), currentComic);	
+						//Create edges between all characters in this characterGroup, add to graph
+						Iterator<String> outter = characterGroup.iterator();
+						while( outter.hasNext() ) 
+						{
+							String currentChar = outter.next();
+							System.out.println( "Building Graph: " + currentChar + " in " + currentComic);
+							outter.remove(); //Remove currentChar from characterGroup
+							
+							Iterator<String> inner = characterGroup.iterator(); //one less than outter now
+							while( inner.hasNext() ) //Creates edges between currentChar and others in group
+								graph.addEdge(currentChar, (String) inner.next(), currentComic);	
+						}
 					}
-					currentComic = nextEntry[1]; //Change currentComic to next comic in data
-					characterGroup.add( nextEntry[0] ); //Add character from next comic to now-empty set
+					
+					if( nextEntry != POISON_PILL) //If nextEntry isn't the poison pill, start new group
+					{
+						currentComic = nextEntry[1]; //Change currentComic to next comic in data
+						characterGroup.add( nextEntry[0] ); //Add character from next comic to now-empty set 
+					}
+					else
+						break; //Stop processing. We've built the last edges and there's no more tasks	
 				}
+				nextEntry = tasks.take(); //Get next task
 			}
-			while( (nextEntry = tasks.take()) != POISON_PILL ); //Keep processing till producer ends
+			while(  characterGroup.size() !=0 ); //Keep processing till producer ends
 		}
 		catch(Exception e)
 		{

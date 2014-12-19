@@ -134,6 +134,7 @@ public class SimpleGraph {
 	 * @param endVertex - ending vertex for the path
 	 * @param threads - number of threads to use when searching
 	 * @return the list of vertices on the shortest path from "startVertex" to "endVertex"
+	 * @throws IllegalArgumentException - if startVertex is not on the graph
 	 * 
 	 * Thread Safety Argument:
 	 * 1. pathMap, currentVertices, and nextVertices are thread-safe data types:
@@ -225,15 +226,74 @@ public class SimpleGraph {
 			SortedSet<Edge> edges = new TreeSet<Edge>( edgeMap.get(currentSet) ); //sort edges
 			String lowestEdge = edges.first().getLabel(); //Get lowest edge between 2 vertices
 			
+			//Remove the enclosing quotations for vertices and edgeLabel
+			start.replaceAll("^\"|\"$", "");
+			end.replaceAll("^\"|\"$", "");
+			lowestEdge.replaceAll("^\"|\"$", "");
 			//String representation for the 2 vertices and the edge connecting them
-			path.append( start + "and " + end + "appear in " + lowestEdge + " \n" );
+			path.append( start+ "and " + end + "appear in " + lowestEdge + " \n" );
 		}
 		return path.toString();
 	}
 	
+	/**
+	 * Returns the set of neighbours of a vertex if the vertex exists in the graph
+	 * @param vertex - vertex whose neighbours you want to obtain
+	 * @return a set containing the neighbours of "vertex" (empty if no neighbours).
+	 * @throws IllegalArgumentException - if "vertex" does not exist on the graph
+	 */
+	public Set<String> getNeighbours( String vertex )
+	{
+		Set<String> neighbours = adjacencyList.get(vertex);
+		if( neighbours == null )
+			throw new IllegalArgumentException();
+		else
+			return neighbours;
+	}
+	
+	/**
+	 * Returns the set of all edges between the given pair of vertices if they exist in the graph
+	 * @param vertexPair - The pair of vertices whose edges you want to obtain
+	 * @return a set containing all the edges between "vertexPair"
+	 * @throws IllegalArgumentException - If no edges exist between the vertices in "vertexPair"
+	 */
+	public Set<Edge> getEdges( Set<String> vertexPair )
+	{
+		Set<Edge> edges = edgeMap.get(vertexPair);
+		if( edges == null )
+			throw new IllegalArgumentException();
+		else
+			return edges;
+	}
+	
+	/**
+	 * Checks if the specified SimpleGraph is equal to this by comparing adjacencyList and edgeMap
+	 *@param obj - the SimpleGraph you are comparing this to for equality.
+	 *@return true if obj's adjacencyList and edgeMap are equal to the ones in this, false if not, 
+	 *			 or obj not of type SimpleGraph
+	 */
+	@Override
+	 public boolean equals( Object obj )
+	{
+	if( hashCode() == obj.hashCode() && obj instanceof SimpleGraph)
+		{
+			SimpleGraph graph2 = (SimpleGraph) obj;
+			if( adjacencyList.equals(graph2.adjacencyList) && edgeMap.equals(graph2.edgeMap))
+				return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return 2*adjacencyList.hashCode() + 3*edgeMap.hashCode();
+	}
+
+	//INNER CLASS 
 	private class Search implements Callable<Void> 
 	{
-		/**This is a helper class to find the optimal path to all neighbours of a "level" of vertices
+		/**This is a helper inner class to find the optimal path to all neighbours of a "level" of vertices
 		 * (ie vertices in currentVertices are a "level" as they are all equidistant from the start vertex) 
 		 * and add these neighbours to the next level of vertices (nextVertices) in preparation of the next search
 		 */
@@ -292,17 +352,17 @@ public class SimpleGraph {
 			while( ( currentVertex = currentVertices.poll() ) != null )
 			{
 				//Process each neighbour of currentVertex 
-				for( String neighbour : adjacencyList.get(currentVertex))
+				for( String neighbour : getNeighbours(currentVertex))
 				{
 					if (completePaths.get(neighbour) == null ) //Haven't found optimal path for "neighbour" yet
 					{
 						synchronized( neighbour ) //Lock so accesses to "neighbour" and its path are atomic
 						{
-							List<String> currentPath = tempPaths.get(neighbour);
+							List<String> oldPath = tempPaths.get(neighbour);
 							List<String> newPath;
 							
 							//"neighbour" has not been visited. Create path for it
-							if( currentPath == null ) 
+							if( oldPath == null ) 
 							{
 								newPath = new ArrayList<String>( completePaths.get(currentVertex) );
 								newPath.add( neighbour ); 
@@ -310,16 +370,23 @@ public class SimpleGraph {
 								nextVertices.offer( neighbour ); //Add to nextVertices queue
 							}
 							else //"neighbour" has already been visited 
-							{	
-								//the penultimate vertex on currentPath . Use to compare alphabetical order
-								String lastVertexOnPath = currentPath.get( currentPath.size()-2 );
+							{	List<String> currentPath = completePaths.get(currentVertex);
 								
-								//Update to this new path if new path is alphabetically lower
-								if( currentVertex.compareTo( lastVertexOnPath ) < 0 )
+							//Compare vertices along both paths starting from beginning for lexic. order
+								for( int index = 0; index < oldPath.size()-1; index++ )
 								{
-									newPath = new ArrayList<String>( completePaths.get(currentVertex) );
-									newPath.add( neighbour ); 
-									tempPaths.put(neighbour, newPath); //Update optimal path for "neighbour"
+									String current = currentPath.get(index);
+									String old = oldPath.get(index);
+									//Update tempMap to use currentPath if it is alphabetically lower than oldPath
+									if( current.compareTo(old) < 0 )
+									{
+										newPath = new ArrayList<String>( currentPath );
+										newPath.add( neighbour ); 
+										tempPaths.put(neighbour, newPath); //Update optimal path for "neighbour"
+										break;
+									}
+									else if( current.compareTo(old) > 0 )
+										break; //current path is lexic. > than old path, do nothing
 								}
 							}	
 						}
