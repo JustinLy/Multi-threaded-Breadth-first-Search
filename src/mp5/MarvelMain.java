@@ -22,7 +22,7 @@ public class MarvelMain {
 		marvelGraph.breadthFirstSearch("OLD SKULL", "MACTAGGERT, MOIRA KI", 1);
 		marvelGraph.breadthFirstSearch("OLD SKULL", "MACTAGGERT, MOIRA KI", 2);
 
-		marvelGraph.breadthFirstSearch("VOICE", "KENT, CLARK", 1);
+		marvelGraph.breadthFirstSearch("\"VOICE\"", "KENT, CLARK", 1);
 		marvelGraph.breadthFirstSearch("VOICE", "KENT, CLARK", 3);
 		
 		}

@@ -21,8 +21,8 @@ public class MP5 {
 		else
 		{	//Remove the enclosing characters (<, >, etc before processing)
 			String filename = args[0];
-			String startVertex = args[1].replaceAll("^\"|\"$", ""); //Remove outter quotes if any
-			String endVertex = args[2].replaceAll("^\"|\"$", "");
+			String startVertex = args[1];
+			String endVertex = args[2];
 			int threads = Integer.parseInt(args[3]);
 			
 			try

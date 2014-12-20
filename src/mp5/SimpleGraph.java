@@ -159,6 +159,9 @@ public class SimpleGraph {
 		//Temporary path map for the threads to work on. Final results are transferred to pathMap at end of each level of search.
 		Map<String, List<String>> tempPaths = new ConcurrentHashMap<String, List<String>>();
 		
+		startVertex = startVertex.replaceAll("^\"|\"$", ""); //Remove enclosing quotations
+		endVertex = endVertex.replaceAll("^\"|\"$", "");
+		
 		//add startVertex to completePaths 
 		ArrayList<String> startPath = new ArrayList<String>();
 		startPath.add(startVertex);
