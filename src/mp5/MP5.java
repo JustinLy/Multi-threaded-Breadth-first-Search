@@ -19,7 +19,7 @@ public class MP5 {
 			throw new IllegalArgumentException( "Error: Must supply 4 arguments\n");
 		}
 		else
-		{	//Remove the enclosing characters (<, >, etc before processing)
+		{	
 			String filename = args[0];
 			String startVertex = args[1];
 			String endVertex = args[2];
