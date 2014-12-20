@@ -15,7 +15,7 @@ import org.junit.Test;
 
 public class MarvelGeneratorTest {
 	SimpleGraph dcGraph = new SimpleGraph();
-/**
+/** Uses a small DC dataset "DC.txt" (because DC > Marvel :) )
  * Test whether MarvelGenerator correctly builds a graph from a file "DC.txt"
  * Expected: Graph built successfully 
  */
@@ -112,19 +112,20 @@ public class MarvelGeneratorTest {
 	{
 		if( characterGroup.size() == 1 ) //Special case: only 1 character in comic
 			dcGraph.addVertex( (String) characterGroup.iterator().next() );
-		else{
-		//Create edges between all characters in this characterGroup, add to graph
-		Iterator<String> outter = characterGroup.iterator();
-		while( outter.hasNext() ) 
+		else
 		{
-			String currentChar = outter.next();
-			System.out.println( "Building Graph: " + currentChar + " in " + comic);
-			outter.remove(); //Remove currentChar from characterGroup
-			
-			Iterator<String> inner = characterGroup.iterator(); //one less than outter now
-			while( inner.hasNext() ) //Creates edges between currentChar and others in group
-				dcGraph.addEdge(currentChar, (String) inner.next(), comic);	
-		} 
+			//Create edges between all characters in this characterGroup, add to graph
+			Iterator<String> outter = characterGroup.iterator();
+			while( outter.hasNext() ) 
+			{
+				String currentChar = outter.next();
+				System.out.println( "Building Graph: " + currentChar + " in " + comic);
+				outter.remove(); //Remove currentChar from characterGroup
+				
+				Iterator<String> inner = characterGroup.iterator(); //one less than outter now
+				while( inner.hasNext() ) //Creates edges between currentChar and others in group
+					dcGraph.addEdge(currentChar, (String) inner.next(), comic);	
+			} 
 		}
 		
 	}

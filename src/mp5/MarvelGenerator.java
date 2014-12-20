@@ -53,8 +53,11 @@ public final class MarvelGenerator {
 			{
 				String next;
 				try 
-				{	while( (next = producer.readLine() ) != null )
+				{	
+					int count = 0;
+					while( (next = producer.readLine() ) != null )
 					{
+						System.out.println( "Building Graph: " + ++count + " " + next);
 						String[] nextData = next.split("\\t"); //Split char and comic
 						tasks.put( nextData ); //Place into task queue for consumer
 					}
@@ -85,15 +88,17 @@ public final class MarvelGenerator {
 				else 
 				{	
 					if( characterGroup.size() == 1 ) //Special case: only 1 character in comic
+					{
 						graph.addVertex( (String) characterGroup.iterator().next() );
+						characterGroup.clear();
+					}
 					else
 					{
 						//Create edges between all characters in this characterGroup, add to graph
 						Iterator<String> outter = characterGroup.iterator();
 						while( outter.hasNext() ) 
 						{
-							String currentChar = outter.next();
-							System.out.println( "Building Graph: " + currentChar + " in " + currentComic);
+							String currentChar = outter.next();		
 							outter.remove(); //Remove currentChar from characterGroup
 							
 							Iterator<String> inner = characterGroup.iterator(); //one less than outter now
@@ -113,6 +118,7 @@ public final class MarvelGenerator {
 				nextEntry = tasks.take(); //Get next task
 			}
 			while(  characterGroup.size() !=0 ); //Keep processing till producer ends
+			producer.close(); //Close the producer thread reading from file
 		}
 		catch(Exception e)
 		{

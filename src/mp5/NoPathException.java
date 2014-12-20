@@ -6,7 +6,7 @@ public class NoPathException extends RuntimeException {
 	
 	public NoPathException(String start, String end )
 	{
-		System.out.println( "Error: No path could be found between " + start + "and " + end );
+		System.out.println( "Error: No path could be found between " + start + " and " + end + "\n");
 	}
 
 }

@@ -148,7 +148,7 @@ public class SimpleGraph {
 	 * 		- Checking if empty and polling is done together atomically in queues
 	 * 		- All accesses to a "neighbour" vertex and its current path is synchronized and made atomic
 	 */
-	List<String> breadthFirstSearch( String startVertex, String endVertex, int threads )
+	public List<String> breadthFirstSearch( String startVertex, String endVertex, int threads )
 	{
 		//Maps each visited vertex to shortest path to get to it from startVertex. These paths are optimized
 		Map<String, List<String>> completePaths = new ConcurrentHashMap<String, List<String>>();
@@ -162,7 +162,7 @@ public class SimpleGraph {
 		
 		if( endVertex.equals(startVertex) ) //start and end are same just return startPath
 		{
-			System.out.println( "Path from " + startVertex + "to" + endVertex + "is" + startVertex);
+			System.out.println( "Path from " + startVertex + " to " + endVertex + " is " + startVertex + "\n");
 			return startPath; 
 		}
 		
@@ -191,6 +191,7 @@ public class SimpleGraph {
 			List<String> finalPath = tempPaths.get(endVertex);
 			if( finalPath != null ) //Optimal path to endVertex found
 			{
+				executor.shutdown(); //shut down the executor
 				System.out.println( pathToString(finalPath));
 				return finalPath;
 			}
@@ -201,7 +202,7 @@ public class SimpleGraph {
 			}
 		}
 		while( searchTask.updateSearch() ); //Updates search task and continues if there is more work to be done.
-		
+		executor.shutdown(); //shut down the executor
 		throw new NoPathException(startVertex, endVertex ); //No path between the vertices found
 	}
 	
@@ -211,7 +212,7 @@ public class SimpleGraph {
 	 *@param verticesOnPath - vertices on the path
 	 *@return - a string representation of "verticesOnPath" with alphabetically lowest edges.
 	 */
-	private String pathToString( List<String> verticesOnPath )
+	public String pathToString( List<String> verticesOnPath )
 	{
 		StringBuffer path = new StringBuffer("" );
 		
@@ -227,11 +228,11 @@ public class SimpleGraph {
 			String lowestEdge = edges.first().getLabel(); //Get lowest edge between 2 vertices
 			
 			//Remove the enclosing quotations for vertices and edgeLabel
-			start.replaceAll("^\"|\"$", "");
-			end.replaceAll("^\"|\"$", "");
-			lowestEdge.replaceAll("^\"|\"$", "");
+			start = start.replaceAll("^\"|\"$", "");
+			end = end.replaceAll("^\"|\"$", "");
+			lowestEdge = lowestEdge.replaceAll("^\"|\"$", "");
 			//String representation for the 2 vertices and the edge connecting them
-			path.append( start+ "and " + end + "appear in " + lowestEdge + " \n" );
+			path.append( start+ " and " + end + " appear in " + lowestEdge + "\n" );
 		}
 		return path.toString();
 	}
@@ -246,7 +247,10 @@ public class SimpleGraph {
 	{
 		Set<String> neighbours = adjacencyList.get(vertex);
 		if( neighbours == null )
+		{
+			System.out.println( vertex + " does not exist" );
 			throw new IllegalArgumentException();
+		}
 		else
 			return neighbours;
 	}
@@ -275,7 +279,7 @@ public class SimpleGraph {
 	@Override
 	 public boolean equals( Object obj )
 	{
-	if( hashCode() == obj.hashCode() && obj instanceof SimpleGraph)
+		if( hashCode() == obj.hashCode() && obj instanceof SimpleGraph)
 		{
 			SimpleGraph graph2 = (SimpleGraph) obj;
 			if( adjacencyList.equals(graph2.adjacencyList) && edgeMap.equals(graph2.edgeMap))
@@ -335,7 +339,7 @@ public class SimpleGraph {
 			currentVertices = nextVertices; 
 			nextVertices = tempQueue; 
 			nextVertices.clear();	
-			return currentVertices.isEmpty();
+			return !currentVertices.isEmpty();
 		}
 		
 		/**
@@ -350,7 +354,7 @@ public class SimpleGraph {
 			
 			//Process vertices in currentVertices till it's empty. Empty-Checks and dequeues are atomic
 			while( ( currentVertex = currentVertices.poll() ) != null )
-			{
+			{	
 				//Process each neighbour of currentVertex 
 				for( String neighbour : getNeighbours(currentVertex))
 				{
