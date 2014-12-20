@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class Edge implements Comparable {
+public class Edge implements Comparable<Object> {
 
 	private final Set<String> vertexPair;
 	private final String edgeLabel;

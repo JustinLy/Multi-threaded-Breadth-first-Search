@@ -121,6 +121,7 @@ public final class MarvelGenerator {
 			}
 			while(  characterGroup.size() !=0 ); //Keep processing till producer ends
 			producer.close(); //Close the producer thread reading from file
+			System.out.println( "\nGraph building complete!\n");
 		}
 		catch(Exception e)
 		{

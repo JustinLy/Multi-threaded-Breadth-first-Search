@@ -21,8 +21,8 @@ public class MP5 {
 		else
 		{	//Remove the enclosing characters (<, >, etc before processing)
 			String filename = args[0];
-			String startVertex = args[1];
-			String endVertex = args[2];
+			String startVertex = args[1].replaceAll("^\"|\"$", ""); //Remove outter quotes if any
+			String endVertex = args[2].replaceAll("^\"|\"$", "");
 			int threads = Integer.parseInt(args[3]);
 			
 			try
@@ -33,7 +33,14 @@ public class MP5 {
 			{
 				System.out.println( "Error: Reading file\n");
 			}
+			try
+			{
 			graph.breadthFirstSearch(startVertex, endVertex, threads);
+			}
+			catch(NoPathException e)
+			{
+				//No need to do anything, NoPathException prints out an error message.
+			}
 		}
 	}
 

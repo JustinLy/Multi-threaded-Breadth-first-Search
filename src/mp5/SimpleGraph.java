@@ -137,14 +137,18 @@ public class SimpleGraph {
 	 * @throws IllegalArgumentException - if startVertex is not on the graph
 	 * 
 	 * Thread Safety Argument:
-	 * 1. pathMap, currentVertices, and nextVertices are thread-safe data types:
+	 * 1. completePaths, tempPaths, currentVertices, and nextVertices are thread-safe data types:
 	 * 	- All "search threads" will remove vertices from currentVertices and add vertices
 	 * 	 	to nextVertices. The methods for these operations are atomic. 
 	 * 2. Since all threads can only work on the same "level" of vertices from startVertex
 	 * 		there is no possibility of a thread finding endVertex first on a further level and
 	 * 		causing a longer path to be returned
-	 * 3. Since threads can only work on the same "level" of vertices and no paths
-	 * 4. Within Searcher's run() method:
+	 * 3. The BFS method will check all potential pathways to a neighbour vertex from a particular
+	 * 		level of vertices for alphabetical ordering, so that at the end of each "search round"
+	 * 		(a round is the current "depth" or "level" of the vertices in currentVertices) tempPaths
+	 * 		will contain the alphabetically lowest path for all new neighbours visited regardless
+	 * 		of the order that neighbouring vertices are visited by each thread.
+	 * 4. Within Searcher's call() method:
 	 * 		- Checking if empty and polling is done together atomically in queues
 	 * 		- All accesses to a "neighbour" vertex and its current path is synchronized and made atomic
 	 */
