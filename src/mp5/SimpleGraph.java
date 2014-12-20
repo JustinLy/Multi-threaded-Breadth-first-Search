@@ -227,10 +227,6 @@ public class SimpleGraph {
 			SortedSet<Edge> edges = new TreeSet<Edge>( edgeMap.get(currentSet) ); //sort edges
 			String lowestEdge = edges.first().getLabel(); //Get lowest edge between 2 vertices
 			
-			//Remove the enclosing quotations for vertices and edgeLabel
-			start = start.replaceAll("^\"|\"$", "");
-			end = end.replaceAll("^\"|\"$", "");
-			lowestEdge = lowestEdge.replaceAll("^\"|\"$", "");
 			//String representation for the 2 vertices and the edge connecting them
 			path.append( start+ " and " + end + " appear in " + lowestEdge + "\n" );
 		}

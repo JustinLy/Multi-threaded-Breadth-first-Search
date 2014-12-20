@@ -59,6 +59,8 @@ public final class MarvelGenerator {
 					{
 						System.out.println( "Building Graph: " + ++count + " " + next);
 						String[] nextData = next.split("\\t"); //Split char and comic
+						nextData[0] = nextData[0].replaceAll("^\"|\"$", ""); //Get rid of outter quotations
+						nextData[1] = nextData[1].replaceAll("^\"|\"$", "");
 						tasks.put( nextData ); //Place into task queue for consumer
 					}
 					tasks.put(POISON_PILL); //End of file, place poison pill to stop consumer 

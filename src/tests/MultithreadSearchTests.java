@@ -32,10 +32,10 @@ public class MultithreadSearchTests {
 	@Test
 	public void longPathVsShort() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Batman\"");
-		correct.add("\"Green Arrow\"");
-		correct.add("\"Chloe Sullivan\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Batman\"", "\"Chloe Sullivan\"", 2));
+		correct.add("Batman");
+		correct.add("Green Arrow");
+		correct.add("Chloe Sullivan");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Batman", "Chloe Sullivan", 2));
 	}
 	
 	/**TEST SIMPLE ALPHABETICAL ORDER of Vertices (at the final level) Captain America --> Deathstroke
@@ -48,11 +48,11 @@ public class MultithreadSearchTests {
 	@Test
 	public void alphabetOrderVertices() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Captain America\"");
-		correct.add("\"Batman\"");
-		correct.add("\"Flash\"");
-		correct.add("\"Deathstroke\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Captain America\"", "\"Deathstroke\"", 2));
+		correct.add("Captain America");
+		correct.add("Batman");
+		correct.add("Flash");
+		correct.add("Deathstroke");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Captain America", "Deathstroke", 2));
 	}
 	
 	/**TEST COMPLICATED PATH (many possible paths, lot's of alphabetical order computations) 
@@ -62,11 +62,11 @@ public class MultithreadSearchTests {
 	@Test
 	public void complicatedPath() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Random Pedestrian\"");
-		correct.add("\"Batman\"");
-		correct.add("\"Ra's al Ghul\"");
-		correct.add("\"Darkseid\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Random Pedestrian\"", "\"Darkseid\"", 2));
+		correct.add("Random Pedestrian");
+		correct.add("Batman");
+		correct.add("Ra's al Ghul");
+		correct.add("Darkseid");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Random Pedestrian", "Darkseid", 2));
 	}
 	
 	/**Test No path. Batman -> Daler Mehndi
@@ -75,7 +75,7 @@ public class MultithreadSearchTests {
 	@Test
 	public void testNoPath() {
 		try{
-			dcGraph.breadthFirstSearch("\"Batman\"", "\"Daler Mehndi\"", 2);
+			dcGraph.breadthFirstSearch("Batman", "Daler Mehndi", 2);
 			fail();
 		}
 		catch(NoPathException e)
@@ -90,8 +90,8 @@ public class MultithreadSearchTests {
 	@Test
 	public void testPathToSelf() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Batman\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Batman\"", "\"Batman\"", 2));
+		correct.add("Batman");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Batman", "Batman", 2));
 	}
 	
 	/**
@@ -103,15 +103,15 @@ public class MultithreadSearchTests {
 	 */
 	@Test
 	public void alphabetOrderEdges() {
-		dcGraph.addEdge("\"Batman\"", "\"Random Pedestrian\"", "\"A lower comic\"");
-		dcGraph.addEdge("\"Batman\"", "\"Ra's al Ghul\"", "\"Batman Begins\"");
+		dcGraph.addEdge("Batman", "Random Pedestrian", "A lower comic");
+		dcGraph.addEdge("Batman", "Ra's al Ghul", "Batman Begins");
 		//This one won't be used in output, because it is alphab. greater than "Darkness"
-		dcGraph.addEdge( "\"Ra's al Ghul\"","\"Darkseid\"", "\"Not a lower comic\"" );
+		dcGraph.addEdge( "Ra's al Ghul","Darkseid", "Not a lower comic" );
 		
 		String correct = "Random Pedestrian and Batman appear in A lower comic\n"+
 						"Batman and Ra's al Ghul appear in Batman Begins\n" +
 						"Ra's al Ghul and Darkseid appear in Darkness\n";
-		String test = dcGraph.pathToString(dcGraph.breadthFirstSearch("\"Random Pedestrian\"", "\"Darkseid\"", 2));
+		String test = dcGraph.pathToString(dcGraph.breadthFirstSearch("Random Pedestrian", "Darkseid", 2));
 		assertEquals(correct, test );
 	}
 	
@@ -122,7 +122,7 @@ public class MultithreadSearchTests {
 	@Test
 	public void nonexistentVertices() {
 		try{
-			dcGraph.breadthFirstSearch("\"Relad\"", "\"Ryu\"", 2);
+			dcGraph.breadthFirstSearch("Relad", "Ryu", 2);
 			fail();
 		}
 		catch(Exception e )
@@ -140,11 +140,11 @@ public class MultithreadSearchTests {
 	@Test
 	public void complicatedPathTriple() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Random Pedestrian\"");
-		correct.add("\"Batman\"");
-		correct.add("\"Ra's al Ghul\"");
-		correct.add("\"Darkseid\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Random Pedestrian\"", "\"Darkseid\"", 3));
+		correct.add("Random Pedestrian");
+		correct.add("Batman");
+		correct.add("Ra's al Ghul");
+		correct.add("Darkseid");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Random Pedestrian", "Darkseid", 3));
 	}
 	
 	/**Extra long path test, with multiple possible paths. Chloe Sullivan -> Zero 
@@ -153,12 +153,12 @@ public class MultithreadSearchTests {
 	@Test
 	public void longPathTriple() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Chloe Sullivan\"");
-		correct.add("\"Green Arrow\"");
-		correct.add("\"Batman\"");
-		correct.add("\"Captain America\"");
-		correct.add("\"Zero\"");
-		assertEquals(correct, dcGraph.breadthFirstSearch("\"Chloe Sullivan\"", "\"Zero\"", 3));
+		correct.add("Chloe Sullivan");
+		correct.add("Green Arrow");
+		correct.add("Batman");
+		correct.add("Captain America");
+		correct.add("Zero");
+		assertEquals(correct, dcGraph.breadthFirstSearch("Chloe Sullivan", "Zero", 3));
 	}
 	
 	/**
@@ -170,15 +170,15 @@ public class MultithreadSearchTests {
 	 */
 	@Test
 	public void alphabetOrderEdgesTriple() {
-		dcGraph.addEdge("\"Batman\"", "\"Random Pedestrian\"", "\"A lower comic\"");
-		dcGraph.addEdge("\"Batman\"", "\"Ra's al Ghul\"", "\"Batman Begins\"");
+		dcGraph.addEdge("Batman", "Random Pedestrian", "A lower comic");
+		dcGraph.addEdge("Batman", "Ra's al Ghul", "Batman Begins");
 		//This one won't be used in output, because it is alphab. greater than "Darkness"
-		dcGraph.addEdge( "\"Ra's al Ghul\"","\"Darkseid\"", "\"Not a lower comic\"" );
+		dcGraph.addEdge( "Ra's al Ghul","Darkseid", "Not a lower comic" );
 		
 		String correct = "Random Pedestrian and Batman appear in A lower comic\n"+
 						"Batman and Ra's al Ghul appear in Batman Begins\n" +
 						"Ra's al Ghul and Darkseid appear in Darkness\n";
-		String test = dcGraph.pathToString(dcGraph.breadthFirstSearch("\"Random Pedestrian\"", "\"Darkseid\"", 3));
+		String test = dcGraph.pathToString(dcGraph.breadthFirstSearch("Random Pedestrian", "Darkseid", 3));
 		assertEquals(correct, test );
 	}
 }

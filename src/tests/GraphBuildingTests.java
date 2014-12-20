@@ -11,11 +11,6 @@ import org.junit.Test;
 import  mp5.*;
 public class GraphBuildingTests {
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		
-	}
-
 	/**Simple test to add vertex to graph and see if it worked
 	 * Expected: Vertex added successfully with empty set of neighbours **/
 	@Test

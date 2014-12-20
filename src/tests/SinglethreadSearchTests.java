@@ -28,10 +28,10 @@ static SimpleGraph dcGraph;
 	@Test
 	public void longPathVsShort() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Batman\"");
-		correct.add("\"Green Arrow\"");
-		correct.add("\"Chloe Sullivan\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Batman\"", "\"Chloe Sullivan\"", 1));
+		correct.add("Batman");
+		correct.add("Green Arrow");
+		correct.add("Chloe Sullivan");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Batman", "Chloe Sullivan", 1));
 	}
 	
 	/**TEST SIMPLE ALPHABETICAL ORDER of Vertices (at the final level) Captain America --> Deathstroke
@@ -44,11 +44,11 @@ static SimpleGraph dcGraph;
 	@Test
 	public void alphabetOrderVertices() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Captain America\"");
-		correct.add("\"Batman\"");
-		correct.add("\"Flash\"");
-		correct.add("\"Deathstroke\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Captain America\"", "\"Deathstroke\"", 1));
+		correct.add("Captain America");
+		correct.add("Batman");
+		correct.add("Flash");
+		correct.add("Deathstroke");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Captain America", "Deathstroke", 1));
 	}
 
 	/**TEST COMPLICATED PATH (many possible paths, lot's of alphabetical order computations) 
@@ -58,11 +58,11 @@ static SimpleGraph dcGraph;
 	@Test
 	public void complicatedPath() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Random Pedestrian\"");
-		correct.add("\"Batman\"");
-		correct.add("\"Ra's al Ghul\"");
-		correct.add("\"Darkseid\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Random Pedestrian\"", "\"Darkseid\"", 1));
+		correct.add("Random Pedestrian");
+		correct.add("Batman");
+		correct.add("Ra's al Ghul");
+		correct.add("Darkseid");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Random Pedestrian", "Darkseid", 1));
 	}
 	
 	/**Test No path. Batman -> Daler Mehndi
@@ -71,7 +71,7 @@ static SimpleGraph dcGraph;
 	@Test
 	public void testNoPath() {
 		try{
-			dcGraph.breadthFirstSearch("\"Batman\"", "\"Daler Mehndi\"", 1);
+			dcGraph.breadthFirstSearch("Batman", "Daler Mehndi", 1);
 			fail();
 		}
 		catch(NoPathException e)
@@ -86,8 +86,8 @@ static SimpleGraph dcGraph;
 	@Test
 	public void testPathToSelf() {
 		List<String> correct = new ArrayList<String>();
-		correct.add("\"Batman\"");
-		assertEquals( correct, dcGraph.breadthFirstSearch("\"Batman\"", "\"Batman\"", 1));
+		correct.add("Batman");
+		assertEquals( correct, dcGraph.breadthFirstSearch("Batman", "Batman", 1));
 	}
 	
 	/**
@@ -99,15 +99,15 @@ static SimpleGraph dcGraph;
 	 */
 	@Test
 	public void alphabetOrderEdges() {
-		dcGraph.addEdge("\"Batman\"", "\"Random Pedestrian\"", "\"A lower comic\"");
-		dcGraph.addEdge("\"Batman\"", "\"Ra's al Ghul\"", "\"Batman Begins\"");
+		dcGraph.addEdge("Batman", "Random Pedestrian", "A lower comic");
+		dcGraph.addEdge("Batman", "Ra's al Ghul", "Batman Begins");
 		//This one won't be used in output, because it is alphab. greater than "Darkness"
-		dcGraph.addEdge( "\"Ra's al Ghul\"","\"Darkseid\"", "\"Not a lower comic\"" );
+		dcGraph.addEdge( "Ra's al Ghul","Darkseid", "Not a lower comic" );
 		
 		String correct = "Random Pedestrian and Batman appear in A lower comic\n"+
 						"Batman and Ra's al Ghul appear in Batman Begins\n" +
 						"Ra's al Ghul and Darkseid appear in Darkness\n";
-		String test = dcGraph.pathToString(dcGraph.breadthFirstSearch("\"Random Pedestrian\"", "\"Darkseid\"", 1));
+		String test = dcGraph.pathToString(dcGraph.breadthFirstSearch("Random Pedestrian", "Darkseid", 1));
 		assertEquals(correct, test );
 	}
 	
@@ -118,7 +118,7 @@ static SimpleGraph dcGraph;
 	@Test
 	public void nonexistentVertices() {
 		try{
-			dcGraph.breadthFirstSearch("\"Relad\"", "\"Ryu\"", 1);
+			dcGraph.breadthFirstSearch("Relad", "Ryu", 1);
 			fail();
 		}
 		catch(Exception e )
