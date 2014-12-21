@@ -1,6 +1,7 @@
-package mp5;
 
-import java.io.FileNotFoundException;
+
+import java.io.FileNotFoundException; 
+import mp5.*;
 
 public class MP5 {
 
@@ -28,14 +29,12 @@ public class MP5 {
 			try
 			{
 				 graph = MarvelGenerator.generateGraph(filename);
+				 graph.breadthFirstSearch(startVertex, endVertex, threads);
 			} 
-			catch (FileNotFoundException e) 
+			catch (FileNotFoundException | NullPointerException e) 
 			{
-				System.out.println( "Error: Reading file\n");
-			}
-			try
-			{
-			graph.breadthFirstSearch(startVertex, endVertex, threads);
+				System.out.println( "Error Reading file: Please make sure you have" +
+						" supplied the correct file path\n");
 			}
 			catch(NoPathException e)
 			{
