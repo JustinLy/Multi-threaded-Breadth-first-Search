@@ -1,6 +1,4 @@
-Hello Rudi
-===
-Below is a brief description of the parts of our MP5, to make it a little easier to navigate through.
+
 
 ### SimpleGraph.java 
 
